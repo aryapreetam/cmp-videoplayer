@@ -7,14 +7,17 @@ plugins {
   alias(libs.plugins.multiplatform)
   alias(libs.plugins.compose.compiler)
   alias(libs.plugins.compose)
-  alias(libs.plugins.android.application)
-  alias(libs.plugins.composeHotReload)
+  alias(libs.plugins.android.kotlin.multiplatform.library)
 }
 
 kotlin {
   jvmToolchain(17)
 
-  androidTarget()
+  androidLibrary {
+    namespace = "sample.app"
+    compileSdk = 35
+    minSdk = 23
+  }
   jvm()
   wasmJs {
     browser()
@@ -33,16 +36,18 @@ kotlin {
 
   sourceSets {
     commonMain.dependencies {
-      implementation(compose.runtime)
-      implementation(compose.ui)
-      implementation(compose.foundation)
+      implementation(libs.compose.runtime)
+      implementation(libs.compose.ui.multiplatform)
+      implementation(libs.compose.foundation)
+      implementation(libs.compose.material3)
+      implementation(libs.compose.materialIconsExtended)
       implementation(project(":lib"))
     }
 
     commonTest.dependencies {
       implementation(libs.kotlin.test)
       @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
-      implementation(compose.uiTest)
+      implementation(libs.compose.ui.test)
     }
 
     androidMain.dependencies {
@@ -56,34 +61,19 @@ kotlin {
   }
 }
 
-android {
-  namespace = "sample.app"
-  compileSdk = 35
-
-  defaultConfig {
-    minSdk = 21
-    targetSdk = 35
-
-    applicationId = "sample.app"
-    versionCode = 1
-    versionName = "1.0.0"
-  }
-}
-
 compose.desktop {
   application {
     mainClass = "MainKt"
 
     nativeDistributions {
       targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-      packageName = "sample"
+      packageName = findProperty("libArtifactId")?.toString()?.let { "sample-$it" } ?: "sample"
       packageVersion = "1.0.0"
     }
   }
 }
 
 tasks.withType<Test>().configureEach {
-  // works for both testDebugUnitTest & testReleaseUnitTest
   if (name.endsWith("UnitTest")) {
     exclude("**/*UITest*")
   }

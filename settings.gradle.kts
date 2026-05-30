@@ -1,4 +1,4 @@
-rootProject.name = "cmp-lib-template"
+rootProject.name = "cmp-videoplayer"
 
 pluginManagement {
   repositories {
@@ -10,6 +10,8 @@ pluginManagement {
         includeGroupByRegex("android.*")
       }
     }
+    maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
     gradlePluginPortal()
     mavenCentral()
   }
@@ -25,6 +27,7 @@ dependencyResolutionManagement {
         includeGroupByRegex("android.*")
       }
     }
+    maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     mavenCentral()
   }
 }
@@ -35,4 +38,5 @@ plugins {
 
 include(":lib")
 include(":sample:composeApp")
+include(":sample:androidApp")
 

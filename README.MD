@@ -1,18 +1,18 @@
-<h1 align="center">Compose Multiplatform Library Template</h1>
+<h1 align="center">CMP Video Player - Compose Multiplatform Video Player Library</h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Compose%20Multiplatform-v1.9.0-4285F4?logo=jetpackcompose" alt="Compose Multiplatform Version">
-  <img src="https://img.shields.io/badge/Kotlin-v2.2.20-blueviolet?logo=kotlin" alt="Kotlin Version">
+  <img src="https://img.shields.io/badge/Compose%20Multiplatform-v1.10.1-4285F4?logo=jetpackcompose" alt="Compose Multiplatform Version">
+  <img src="https://img.shields.io/badge/Kotlin-v2.3.21-blueviolet?logo=kotlin" alt="Kotlin Version">
 </p>
 
 <p align="center">
-  <a href="https://github.com/aryapreetam/cmp-lib-template/actions/workflows/release.yml">
-    <img src="https://github.com/aryapreetam/cmp-lib-template/actions/workflows/release.yml/badge.svg" alt="Release workflow status">
+  <a href="https://github.com/aryapreetam/cmp-videoplayer/actions/workflows/release.yml">
+    <img src="https://github.com/aryapreetam/cmp-videoplayer/actions/workflows/release.yml/badge.svg" alt="Release workflow status">
   </a>
-  <a href="https://mvnrepository.com/artifact/io.github.aryapreetam/fiblib">
-    <img src="https://img.shields.io/maven-central/v/io.github.aryapreetam/fiblib?label=Maven%20Central&color=blue" alt="Maven Central Version">
+  <a href="https://mvnrepository.com/artifact/io.github.aryapreetam/cmp-videoplayer">
+    <img src="https://img.shields.io/maven-central/v/io.github.aryapreetam/cmp-videoplayer?label=Maven%20Central&color=blue" alt="Maven Central Version">
   </a>
-  <a href="https://github.com/aryapreetam/cmp-lib-template/blob/main/LICENSE">
+  <a href="https://github.com/aryapreetam/cmp-videoplayer/blob/main/LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License">
   </a>
 </p>
@@ -24,83 +24,100 @@
   <img src="https://img.shields.io/badge/Web(wasm)-4285F4?logo=google-chrome&logoColor=white" alt="Web">
 </p>
 
-<!-- New: Brief template description -->
-This repository is a ready-to-ship template for building and releasing Compose Multiplatform libraries. It automates the heavy lifting so you can focus on your API and UX:
+`cmp-videoplayer` is an OSS **Compose Multiplatform** video player component that focuses on one responsibility: **playing video files** across targets.
 
-- Turns your README into a library homepage and publishes it via GitHub Pages (rendered using Docsify).
-- Builds and deploys a wasm demo to `/demo` so users can try your library in the browser.
-- Generates and publishes API docs (Dokka) to `/api`.
-- Produces downloadable sample app executables (APK, DMG, iOS Simulator zip, wasm bundle) so users can validate the library on their device/emulator quickly.
-- Wires a complete CI/CD: test → package → GitHub Release → Pages deploy → optional Maven Central publish on tags.
+Supported targets:
+- Android (Media3 ExoPlayer)
+- iOS (AVPlayer)
+- Desktop/JVM (mediamp + VLC)
+- Web (wasmJs; HTML5 `<video>`)
+
+Non-goals:
+- Embedded providers (YouTube/Vimeo/iframes)
+- Poster/image loading (use the `placeholder` slot)
 
 Wasm Demo: 
-[![Try Live Demo](https://img.shields.io/badge/Try%20Live%20Demo-Web%20wasmJs-blueviolet?style=for-the-badge)](https://aryapreetam.github.io/cmp-lib-template/demo/)
+[![Try Live Demo](https://img.shields.io/badge/Try%20Live%20Demo-Web%20wasmJs-blueviolet?style=for-the-badge)](https://aryapreetam.github.io/cmp-videoplayer/demo/)
 
 API Docs:
-[![Library API Docs](https://img.shields.io/badge/API%20Reference-Library%20Docs-green?style=for-the-badge)](https://aryapreetam.github.io/cmp-lib-template/api/)
+[![Library API Docs](https://img.shields.io/badge/API%20Reference-Library%20Docs-green?style=for-the-badge)](https://aryapreetam.github.io/cmp-videoplayer/api/)
 
 ---
 
-## 🛠️ Using This Template
+## Quick start
 
-**New to this template?** Check out the complete guide: [📖 Using This Template for Your Library](docs/using-this-template.md)
+### Dependency
 
-**Quick setup:**
-1. Click "Use this template" to create your repo
-2. Follow the [setup guide](docs/using-this-template.md) to customize for your library
-3. Configure [GitHub secrets](docs/github-secrets-setup.md) for publishing
-4. **Enable GitHub Pages:** Go to repository Settings → Pages → Source: Select "GitHub Actions"
-5. Start coding your library!
-
-> **Note:** You don't need a pre-existing `<username>.github.io` site. GitHub Pages will automatically create `https://<username>.github.io/<your-library-name>/` when you run your first release.
-
-**For contributors:** See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
-
----
-
-## Quick Start
-
-Add the dependency to your Kotlin Multiplatform library or app. Replace coordinates with your published group/artifact.
-
-Option A — Version catalog (recommended)
-
-1) In `gradle/libs.versions.toml`:
-
-```toml
-yourlib = "0.1.0"
-
-[libraries]
-yourlib = { module = "io.github.yourorg:your-lib", version.ref = "yourlib" }
-```
-
-2) In your module's `build.gradle.kts`:
+Add the dependency to your `commonMain`:
 
 ```kotlin
 kotlin {
   sourceSets {
-    val commonMain by getting {
-      dependencies {
-        implementation(libs.yourlib)
-      }
+    commonMain.dependencies {
+      implementation("io.github.aryapreetam:cmp-videoplayer:<version>")
     }
   }
 }
 ```
 
-Option B — Hardcoded dependency (direct version)
-[versions]
+### Basic usage
 
 ```kotlin
-kotlin {
-  sourceSets {
-    val commonMain by getting {
-        // From Maven Central release
-        // implementation("io.github.yourorg:your-lib:0.1.0-SNAPSHOT")
-      }
-    }
-  }
+@Composable
+fun MyScreen() {
+  VideoPlayer(
+    source = VideoSource.Url("https://example.com/video.mp4"),
+    config = VideoPlayerConfig(
+      autoplay = false,
+      showControls = true,
+    )
+  )
 }
 ```
+
+### Sources
+- `VideoSource.Url(url)` supports `http(s)://`, `file://`, and on Android also `content://` and `android.resource://`.
+- `VideoSource.Path(path)` is a raw filesystem path (Android/iOS/JVM). On wasm, use `Url`.
+
+---
+
+---
+
+## wasm: playing `Res.raw.*` videos
+
+On `wasmJs`, the HTML `<video>` element needs a URL. If your video is only available via Compose resources (`Res.raw.*`), use `rememberBlobVideoUrl`:
+
+```kotlin
+@Composable
+fun ResourceVideo(bytes: ByteArray) {
+  // `mimeType` is explicit by design.
+  val url = rememberBlobVideoUrl(bytes, mimeType = "video/mp4")
+  VideoPlayer(VideoSource.Url(url))
+}
+```
+
+Notes:
+- `blob:` URLs are revoked on disposal.
+- For large videos, serving them as a static file URL is more memory-efficient.
+
+---
+
+## Testing guidance (important)
+
+The library uses platform interop for real playback. For UI tests, you can force a pure-Compose render path:
+
+```kotlin
+CompositionLocalProvider(
+  LocalVideoPlayerConfig provides VideoPlayerConfig(renderMode = RenderMode.PlaceholderOnly)
+) {
+  VideoPlayer(
+    source = VideoSource.Url("https://example.com/video.mp4"),
+    placeholder = { /* render your test-friendly placeholder UI */ }
+  )
+}
+```
+
+The root node uses the test tag `cmp-videoplayer:VideoPlayer`.
 
 If using snapshots from Maven Local, ensure:
 
@@ -111,15 +128,6 @@ repositories {
 }
 ```
 
-Minimal usage example:
-
-```kotlin
-import fiblib.getFibonacciNumbers
-
-val first10 = getFibonacciNumbers(10)
-println(first10)
-```
-
 ---
 
 ## 📦 Download Sample App Executables
@@ -128,12 +136,13 @@ Download and try the sample app on your platform without building from source:
 
 | Platform | Download Link |
 |----------|--------------|
-| 🍏 **macOS (Intel)** | [![Download](https://img.shields.io/badge/Download--Mac--x64--DMG-blue?style=for-the-badge)](https://github.com/aryapreetam/cmp-lib-template/releases/latest/download/sample-app-desktop-x64.dmg) |
-| 🍎 **macOS (Apple Silicon)** | [![Download](https://img.shields.io/badge/Download--Mac--arm64--DMG-blue?style=for-the-badge)](https://github.com/aryapreetam/cmp-lib-template/releases/latest/download/sample-app-desktop-arm64.dmg) |
-| 🪟 **Windows** | [![Download](https://img.shields.io/badge/Download--Windows--MSI-0078D4?style=for-the-badge&logo=windows)](https://github.com/aryapreetam/cmp-lib-template/releases/latest/download/sample-app-windows.msi) |
-| 🤖 **Android** | [![Download](https://img.shields.io/badge/Download--Android--APK-green?style=for-the-badge&logo=android)](https://github.com/aryapreetam/cmp-lib-template/releases/latest/download/sample-app-android-unsigned.apk) |
-| 🌐 **Web (Wasm)** | [![Download](https://img.shields.io/badge/Download--Web--Wasm--zip-purple?style=for-the-badge)](https://github.com/aryapreetam/cmp-lib-template/releases/latest/download/sample-app-wasm.zip) |
-|  **iOS Simulator** | [![Download](https://img.shields.io/badge/Download--iOS--Simulator--zip-orange?style=for-the-badge&logo=apple)](https://github.com/aryapreetam/cmp-lib-template/releases/latest/download/sample-app-ios-simulator.zip) |
+| 🍏 **macOS (Intel)** | [![Download](https://img.shields.io/badge/Download--Mac--x64--DMG-blue?style=for-the-badge)](https://github.com/aryapreetam/cmp-videoplayer/releases/latest/download/sample-app-desktop-x64.dmg) |
+| 🍎 **macOS (Apple Silicon)** | [![Download](https://img.shields.io/badge/Download--Mac--arm64--DMG-blue?style=for-the-badge)](https://github.com/aryapreetam/cmp-videoplayer/releases/latest/download/sample-app-desktop-arm64.dmg) |
+| 🪟 **Windows** | [![Download](https://img.shields.io/badge/Download--Windows--MSI-0078D4?style=for-the-badge&logo=windows)](https://github.com/aryapreetam/cmp-videoplayer/releases/latest/download/sample-app-windows.msi) |
+| 🐧 **Linux** | [![Download](https://img.shields.io/badge/Download--Linux--DEB-E95420?style=for-the-badge&logo=ubuntu)](https://github.com/aryapreetam/cmp-videoplayer/releases/latest/download/sample-app-linux.deb) |
+| 🤖 **Android** | [![Download](https://img.shields.io/badge/Download--Android--APK-green?style=for-the-badge&logo=android)](https://github.com/aryapreetam/cmp-videoplayer/releases/latest/download/sample-app-android-unsigned.apk) |
+| 🌐 **Web (Wasm)** | [![Download](https://img.shields.io/badge/Download--Web--Wasm--zip-purple?style=for-the-badge)](https://github.com/aryapreetam/cmp-videoplayer/releases/latest/download/sample-app-wasm.zip) |
+|  **iOS Simulator** | [![Download](https://img.shields.io/badge/Download--iOS--Simulator--zip-orange?style=for-the-badge&logo=apple)](https://github.com/aryapreetam/cmp-videoplayer/releases/latest/download/sample-app-ios-simulator.zip) |
 
 ### How to Run the Sample App
 
@@ -152,10 +161,10 @@ adb install sample-app-android-unsigned.apk
 - Download and unzip `sample-app-wasm.zip`
 - Open `index.html` in a web browser
 
-**Note:** You can also try the live demo without downloading: [Try Live Demo](https://aryapreetam.github.io/cmp-lib-template/demo/)
+**Note:** You can also try the live demo without downloading: [Try Live Demo](https://aryapreetam.github.io/cmp-videoplayer/demo/)
 
 #### 🍏 iOS Simulator
-- Download `sample-app-ios-simulator.zip` from the [latest release](https://github.com/aryapreetam/cmp-lib-template/releases)
+- Download `sample-app-ios-simulator.zip` from the [latest release](https://github.com/aryapreetam/cmp-videoplayer/releases)
 - Unzip to get `sample-app-ios-simulator.app`
 - Open your iOS Simulator in Xcode
 - Drag the `.app` onto the Simulator window OR run:
@@ -167,18 +176,27 @@ adb install sample-app-android-unsigned.apk
 #### 🍎 macOS
 - Download the DMG for your Mac architecture (Intel or Apple Silicon)
 - Open (mount) the DMG and drag the app to your Applications folder (or Desktop)
-- **When you try to open the app for the first time, you may see a Gatekeeper warning:**
+- **When you try to open the app for the first time, macOS Gatekeeper will block it since it is an open-source build signed ad-hoc (not using a paid Apple Developer account). Follow these 6 sequential steps to allow running the app:**
 
-  <p align="center">
-    <img src="readme_images/desktop_app_run.png" alt="Gatekeeper dialog" width="380" />
-    <br/>
-    <sub>Mac Gatekeeper dialog when opening the app for the first time</sub>
-  </p>
+  <table width="100%">
+    <tr>
+      <td align="center" valign="top"><strong>1. Block Alert Dialog</strong><br/><br/><img src="readme_images/mac_app_run1.png" alt="mac_app_run1" width="220"/></td>
+      <td align="center" valign="top"><strong>2. Open System Settings</strong><br/><br/><img src="readme_images/mac_app_run2.png" alt="mac_app_run2" width="220"/></td>
+      <td align="center" valign="top"><strong>3. Privacy & Security Section</strong><br/><br/><img src="readme_images/mac_app_run3.png" alt="mac_app_run3" width="220"/></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top"><strong>4. Click "Open Anyway"</strong><br/><br/><img src="readme_images/mac_app_run4.png" alt="mac_app_run4" width="220"/></td>
+      <td align="center" valign="top"><strong>5. Authenticate Security Dialog</strong><br/><br/><img src="readme_images/mac_app_run5.png" alt="mac_app_run5" width="220"/></td>
+      <td align="center" valign="top"><strong>6. Click "Open" to Launch</strong><br/><br/><img src="readme_images/mac_app_run6.png" alt="mac_app_run6" width="220"/></td>
+    </tr>
+  </table>
 
 - To allow running the app:
-     1. **Right-click (control-click) the app and select "Open".**
-     2. In the dialog, click "Open". (If there is a question mark in the corner, you can click it for more info.)
-     3. The app will start. This is safe for open-source/test builds.
+     1. Double-click the app. If blocked, open macOS **System Settings** (or System Preferences).
+     2. Navigate to **Privacy & Security** and scroll down to the **Security** section.
+     3. You will see a notice stating: *"sample was blocked from use because it is not from an identified developer"*.
+     4. Click **"Open Anyway"** and authenticate with your user password or Touch ID.
+     5. Re-open the app and click **"Open"** on the confirmation dialog. The app will now launch safely!
 
 > This is a normal security step for all open-source and CI-generated Mac executables. Apps are signed ad-hoc for internal/dev use, not with a public Apple developer ID.
 
@@ -189,16 +207,24 @@ adb install sample-app-android-unsigned.apk
 - Follow the installation wizard
 - Launch the app from the Start menu
 
+#### 🐧 Linux
+- Download the `.deb` file
+- Double-click the file to open it in your software manager and click "Install", OR run:
+  ```bash
+  sudo dpkg -i sample-app-linux.deb
+  ```
+- Launch the application from your desktop launcher or run `sample` in the terminal!
+
 ---
 
-## 🚀 What This Template Provides
+## 🚀 What This Library Provides
 
-This template automatically generates and deploys three key resources for your library:
+This library automatically deploys three key resources:
 
 | Resource | Description | Preview |
 |----------|-------------|---------|
 | 📚 **Library Homepage** | Your README becomes a beautiful landing page with Docsify | <img src="readme_images/site-for-the-lib.png" alt="Library homepage" width="250" /> |
-| 📖 **API Documentation** | Automatically generated Dokka docs with improved UI (2.1.0-Beta) | <img src="readme_images/ste-for-api-doc.png" alt="API docs" width="250" /> |
+| 📖 **API Documentation** | Automatically generated Dokka docs with improved UI (2.2.0) | <img src="readme_images/ste-for-api-doc.png" alt="API docs" width="250" /> |
 | 🌐 **Live Wasm Demo** | Interactive browser demo of your sample app | <img src="readme_images/wasm-demo.png" alt="Wasm demo" width="250" /> |
 
 All three are automatically deployed to GitHub Pages:
@@ -224,16 +250,6 @@ You can also run Gradle tasks in the terminal:
 
 ---
 
-## Dokka UI comparison
-
-The API documentation appearance has improved with Dokka 2.1.0-Beta. Below is a quick visual comparison.
-
-| Dokka (2.0.0)                                           | Dokka (2.1.0-Beta)                                    |
-|---------------------------------------------------------|-------------------------------------------------------|
-| ![API index old](readme_images/api-doc-index-old.png)   | ![API index new](readme_images/api-doc-index-new.png) |
-| ![Function doc new](readme_images/function-doc-old.png) | ![Function doc old](readme_images/function-doc-new.png) |
-
-
 ## CI/CD overview
 
 This repo ships with an opinionated CI/CD that builds, tests, packages, releases, and deploys docs & demo automatically on tags.
@@ -242,7 +258,7 @@ This repo ships with an opinionated CI/CD that builds, tests, packages, releases
 flowchart TD
     A["Lint"] --> B["Build & Test - Library + Sample (all targets)"]
     B --> C["Android UI tests (emulator) & Maestro E2E tests(iOS & Android)"]
-    C --> D["Build artifacts - all targets APK • DMG • iOS Simulator zip • wasm bundle"]
+    C --> D["Build artifacts - APK • DMG (Intel/Apple Silicon) • MSI • DEB • iOS Simulator zip • wasm bundle"]
     D --> E["Create GitHub Release and upload artifacts"]
     E --> F["Publish to Maven Central"]
     E --> G["Deploy GitHub Pages README site (Docsify) + wasm demo + API docs"]
@@ -260,7 +276,7 @@ Key points:
 ### Publish to MavenLocal
 
 1) Run `./gradlew :lib:publishToMavenLocal`
-2) Open `~/.m2/repository/fiblib/`
+2) Open `~/.m2/repository/cmp-videoplayer/`
 
 ### Publish to MavenCentral
 

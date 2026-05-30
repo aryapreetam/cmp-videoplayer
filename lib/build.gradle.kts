@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
   alias(libs.plugins.multiplatform)
-  alias(libs.plugins.android.library)
+  alias(libs.plugins.android.kotlin.multiplatform.library)
   alias(libs.plugins.maven.publish)
   alias(libs.plugins.compose)
   alias(libs.plugins.compose.compiler)
@@ -14,8 +14,18 @@ plugins {
 kotlin {
   jvmToolchain(17)
 
-  androidTarget { publishLibraryVariants("release") }
+  androidLibrary {
+    namespace = "io.github.aryapreetam.cmpvideoplayer"
+    compileSdk = 35
+    minSdk = 23
+    
+    // Enabling Android Resource Processing under KMP to support shared assets (e.g. composeResources) safely.
+    androidResources {
+      enable = true
+    }
+  }
   jvm()
+
   wasmJs { browser() }
   iosX64()
   iosArm64()
@@ -23,13 +33,27 @@ kotlin {
 
   sourceSets {
     commonMain.dependencies {
-      implementation(compose.runtime)
-      implementation(compose.ui)
-      implementation(compose.foundation)
+      implementation(libs.compose.runtime)
+      implementation(libs.compose.ui.multiplatform)
+      implementation(libs.compose.foundation)
+      implementation(libs.compose.material3)
+      implementation(libs.compose.materialIconsExtended)
     }
 
     commonTest.dependencies {
       implementation(kotlin("test"))
+      @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+      implementation(libs.compose.ui.test)
+    }
+
+    androidMain.dependencies {
+      implementation(libs.media3.exoplayer)
+      implementation(libs.media3.ui)
+      implementation(libs.lifecycle.runtime.compose)
+    }
+
+    jvmMain.dependencies {
+      implementation(libs.mediamp.all)
     }
 
   }
@@ -45,13 +69,17 @@ kotlin {
 
 }
 
-android {
-  namespace = "io.github.aryapreetam.fiblib"
-  compileSdk = 35
+// NOTE: Host-specific dependency leakage guardrail:
 
-  defaultConfig {
-    minSdk = 21
-  }
+// DO NOT import host-specific binary dependencies (e.g. `compose.desktop.currentOs`) under library targets.
+// Any desktop UI implementation should target standard platform-agnostic `jvm()` targets.
+// Platform-specific runtime locators must be restricted solely to the executable sample application (:sample).
+
+// Compose UI tests on JVM/desktop may require additional native runtime setup.
+// We keep such tests in the source tree (as documentation/examples), but exclude them
+// from default unit test runs.
+tasks.withType<Test>().configureEach {
+  exclude("**/*UITest*")
 }
 
 dependencies {
@@ -62,12 +90,16 @@ dependencies {
 //https://www.jetbrains.com/help/kotlin-multiplatform-dev/multiplatform-publish-libraries.html
 mavenPublishing {
   publishToMavenCentral()
-  coordinates("io.github.aryapreetam", "fiblib", "0.0.3")
+  coordinates(
+      project.group.toString(),
+      findProperty("libArtifactId")?.toString() ?: "cmp-videoplayer",
+      project.version.toString()
+  )
 
   pom {
-    name = "Fibonacci Library"
-    description = "Compose Multiplatform library for fibonacci numbers"
-    url = "https://aryapreetam.github.io/cmp-lib-template" //todo
+    name = "Video player for CMP"
+    description = "Video player for Compose Multiplatform(Android, iOS, Web(wasm), Desktop)"
+    url = "https://aryapreetam.github.io/cmp-videoplayer" //todo
 
     licenses {
       license {
@@ -84,7 +116,7 @@ mavenPublishing {
     }
 
     scm {
-      url = "https://github.com/aryapreetam/cmp-lib-template" //todo
+      url = "https://github.com/aryapreetam/cmp-videoplayer" //todo
     }
   }
   // Sign publications if either local keyId or CI signingInMemoryKey is available
@@ -92,3 +124,4 @@ mavenPublishing {
     signAllPublications()
   }
 }
+
