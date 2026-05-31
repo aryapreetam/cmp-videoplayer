@@ -275,7 +275,7 @@ Key points:
 
 ### Publish to MavenLocal
 
-1) Run `./gradlew :lib:publishToMavenLocal`
+1) Run `./gradlew :cmp-videoplayer:publishToMavenLocal`
 2) Open `~/.m2/repository/cmp-videoplayer/`
 
 ### Publish to MavenCentral
@@ -301,7 +301,7 @@ But if you want to verify publishing from your local machine, you can follow bel
    # this will copy it for pasting in github actions secrets.
    gpg --export-secret-keys --armor <key id> | pbcopy
    ```
-2) Run `./gradlew :lib:publishAndReleaseToMavenCentral --no-configuration-cache`
+2) Run `./gradlew :cmp-videoplayer:publishAndReleaseToMavenCentral --no-configuration-cache`
    
 Now check the deployments here https://central.sonatype.com/publishing/deployments 
 
@@ -390,7 +390,7 @@ This section lists planned improvements and features for the template. Contribut
   - Integrate github-changelog-generator
   
 - [ ] **Version Bump Automation**
-  - Script to update version in lib/build.gradle.kts
+  - Script to update version in cmp-videoplayer/build.gradle.kts
   - Semantic versioning support
   - Consider semantic-release integration
   

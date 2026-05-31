@@ -1,4 +1,4 @@
-rootProject.name = "cmp-videoplayer"
+rootProject.name = "cmp-videoplayer-root"
 
 pluginManagement {
   repositories {
@@ -36,7 +36,7 @@ plugins {
   id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
-include(":lib")
+include(":cmp-videoplayer")
 include(":sample:composeApp")
 include(":sample:androidApp")
 

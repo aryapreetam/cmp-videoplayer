@@ -12,7 +12,7 @@ cmp-videoplayer/
 │   ├── ci.yml             # Reusable CI (lint, tests, build)
 │   ├── push-ci.yml        # Runs on every push/PR
 │   └── release.yml        # Runs on version tags (v*)
-├── lib/                   # The actual library code
+├── cmp-videoplayer/                   # The actual library code
 │   ├── src/
 │   │   ├── commonMain/    # Shared Kotlin code
 │   │   └── commonTest/    # Shared tests
@@ -55,10 +55,10 @@ cmp-videoplayer/
    ./gradlew test
    
    # Platform-specific tests
-   ./gradlew :lib:jvmTest
-   ./gradlew :lib:iosSimulatorArm64Test
-   ./gradlew :lib:wasmJsBrowserTest
-   ./gradlew :lib:testDebugUnitTest  # Android unit tests
+   ./gradlew :cmp-videoplayer:jvmTest
+   ./gradlew :cmp-videoplayer:iosSimulatorArm64Test
+   ./gradlew :cmp-videoplayer:wasmJsBrowserTest
+   ./gradlew :cmp-videoplayer:testDebugUnitTest  # Android unit tests
    ```
 
 ---
@@ -67,15 +67,15 @@ cmp-videoplayer/
 
 ### Working on the Library
 
-1. Make changes in `lib/src/commonMain/kotlin/`
-2. Write tests in `lib/src/commonTest/kotlin/`
-3. Run tests: `./gradlew :lib:test`
+1. Make changes in `cmp-videoplayer/src/commonMain/kotlin/`
+2. Write tests in `cmp-videoplayer/src/commonTest/kotlin/`
+3. Run tests: `./gradlew :cmp-videoplayer:test`
 4. Check code style: `./gradlew lintRelease`
 
 ### Testing Changes in Sample App
 
-1. Make changes in `lib/`
-2. The sample app automatically uses the local library via `implementation(project(":lib"))`
+1. Make changes in `cmp-videoplayer/`
+2. The sample app automatically uses the local library via `implementation(project(":cmp-videoplayer"))`
 3. Run the sample app on your target platform:
 
    **Android:**
@@ -106,7 +106,7 @@ cmp-videoplayer/
 Test your library locally before publishing to Maven Central:
 
 ```bash
-./gradlew :lib:publishToMavenLocal
+./gradlew :cmp-videoplayer:publishToMavenLocal
 ```
 
 Then in another project, add:
@@ -171,7 +171,7 @@ dependencies {
 
 ### Release Process
 
-1. **Update version in `lib/build.gradle.kts`**
+1. **Update version in `cmp-videoplayer/build.gradle.kts`**
    ```kotlin
    coordinates("io.github.aryapreetam", "cmp-videoplayer", "0.0.4") // Bump this
    ```
@@ -210,10 +210,10 @@ dependencies {
 ./gradlew test
 
 # Specific platforms
-./gradlew :lib:jvmTest
-./gradlew :lib:iosSimulatorArm64Test
-./gradlew :lib:wasmJsBrowserTest
-./gradlew :lib:testDebugUnitTest  # Android
+./gradlew :cmp-videoplayer:jvmTest
+./gradlew :cmp-videoplayer:iosSimulatorArm64Test
+./gradlew :cmp-videoplayer:wasmJsBrowserTest
+./gradlew :cmp-videoplayer:testDebugUnitTest  # Android
 ```
 
 ### UI Tests
@@ -235,7 +235,7 @@ dependencies {
 
 ### Adding a New Platform (e.g., tvOS)
 
-1. **Add target in `lib/build.gradle.kts`**
+1. **Add target in `cmp-videoplayer/build.gradle.kts`**
    ```kotlin
    kotlin {
      // ...existing targets...
@@ -259,7 +259,7 @@ dependencies {
 
 4. **Test locally**
    ```bash
-   ./gradlew :lib:tvosSimulatorArm64Test
+   ./gradlew :cmp-videoplayer:tvosSimulatorArm64Test
    ```
 
 ---
@@ -272,9 +272,9 @@ API documentation is generated automatically via Dokka:
 
 ```bash
 # Generate locally
-./gradlew :lib:dokkaGeneratePublicationHtml
+./gradlew :cmp-videoplayer:dokkaGeneratePublicationHtml
 
-# View at: lib/build/dokka/html/index.html
+# View at: cmp-videoplayer/build/dokka/html/index.html
 ```
 
 On release, docs are automatically published to: `https://yourusername.github.io/repo-name/api/`
@@ -289,7 +289,7 @@ Edit `README.MD` - it's automatically converted to the homepage via Docsify.
 
 ### Common Issues
 
-**Issue: "Task :lib:signKotlinMultiplatformPublication not found"**
+**Issue: "Task :cmp-videoplayer:signKotlinMultiplatformPublication not found"**
 - Ensure GPG key is properly configured
 - Check `signing.keyId` is set (local) or `signingInMemoryKey` (CI)
 

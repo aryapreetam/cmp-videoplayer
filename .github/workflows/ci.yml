@@ -127,13 +127,13 @@ jobs:
           set -e
           case "${{ matrix.target }}" in
             jvm)
-              ./gradlew :lib:jvmTest :sample:composeApp:jvmTest
+              ./gradlew :cmp-videoplayer:jvmTest :sample:composeApp:jvmTest
               ;;
             ios)
-              ./gradlew :lib:iosSimulatorArm64Test :sample:composeApp:iosSimulatorArm64Test
+              ./gradlew :cmp-videoplayer:iosSimulatorArm64Test :sample:composeApp:iosSimulatorArm64Test
               ;;
             wasm)
-              ./gradlew :lib:wasmJsBrowserTest :sample:composeApp:wasmJsBrowserTest
+              ./gradlew :cmp-videoplayer:wasmJsBrowserTest :sample:composeApp:wasmJsBrowserTest
               ;;
           esac
 
@@ -390,7 +390,7 @@ jobs:
             sleep 2
             
             # Run Maestro E2E tests
-            maestro test -e APP_ID=sample.app --format junit --output maestro-android-results.xml maestro-e2e/fib-test.yaml || true
+            maestro test -e APP_ID=sample.app --format junit --output maestro-android-results.xml maestro-e2e/video-player-test.yaml || true
       - name: Upload Maestro test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -504,7 +504,7 @@ jobs:
             -e APP_ID=sample.app.ios \
             --format junit \
             --output maestro-ios-results.xml \
-            maestro-e2e/fib-test.yaml || true
+            maestro-e2e/video-player-test.yaml || true
       - name: Upload Maestro test results
         if: always()
         uses: actions/upload-artifact@v4
