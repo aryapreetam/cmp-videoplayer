@@ -9,6 +9,7 @@ plugins {
   alias(libs.plugins.compose)
   alias(libs.plugins.compose.compiler)
   alias(libs.plugins.dokka)
+  alias(libs.plugins.binary.compatibility.validator)
 }
 
 kotlin {
@@ -23,6 +24,8 @@ kotlin {
     androidResources {
       enable = true
     }
+
+    // TODO: Enable withHostTest {} once unit tests are added to the library target and integrated with CI
   }
   jvm()
 
@@ -55,7 +58,6 @@ kotlin {
     jvmMain.dependencies {
       implementation(libs.mediamp.all)
     }
-
   }
 
   //https://kotlinlang.org/docs/native-objc-interop.html#export-of-kdoc-comments-to-generated-objective-c-headers

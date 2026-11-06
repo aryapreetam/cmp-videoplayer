@@ -1,6 +1,6 @@
-# Contributing to Compose Multiplatform Library Template
+# Contributing to CMP Video Player
 
-Thank you for your interest in contributing! This document provides guidelines for developers working on this template.
+Thank you for your interest in contributing! This document provides guidelines for developers working on this project.
 
 ---
 

@@ -1,7 +1,0 @@
-appId: ${ APP_ID }
----
-- launchApp
-- assertVisible: "cmp-videoplayer sample"
-- tapOn:
-    text: "Load & Play"
-- assertVisible: "Player"

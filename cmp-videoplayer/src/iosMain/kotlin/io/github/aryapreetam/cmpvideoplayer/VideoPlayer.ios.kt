@@ -7,7 +7,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.viewinterop.UIKitView
+import androidx.compose.ui.viewinterop.UIKitViewController
+import kotlinx.cinterop.ExperimentalForeignApi
+import platform.AVFAudio.AVAudioSession
+import platform.AVFAudio.AVAudioSessionCategoryPlayback
+import platform.AVFAudio.setActive
 import platform.AVFoundation.AVLayerVideoGravityResizeAspect
 import platform.AVFoundation.AVPlayer
 import platform.AVFoundation.AVPlayerItem
@@ -21,7 +25,7 @@ import platform.Foundation.NSURL
 import platform.UIKit.UIApplicationDidEnterBackgroundNotification
 import platform.UIKit.UIApplicationWillResignActiveNotification
 import platform.UIKit.UIColor
-import platform.UIKit.UIView
+import platform.UIKit.UIViewController
 import kotlin.native.concurrent.ThreadLocal
 
 internal actual fun isVideoSourceSupported(source: VideoSource): Boolean = true
@@ -142,21 +146,33 @@ internal actual fun PlatformVideoPlayer(
     }
   }
 
-  UIKitView(
+  UIKitViewController(
     factory = {
-      holder.ensureView().apply {
-        backgroundColor = UIColor.blackColor
-      }
+      holder.ensureController()
     },
     modifier = modifier,
-    update = {
+    update = { controller ->
       try {
-        holder.setShowsPlaybackControls(config.showControls)
+        controller.showsPlaybackControls = config.showControls
       } catch (_: Throwable) {
         onErrorState.value.invoke()
       }
+    },
+    onRelease = {
+      holder.dispose()
     }
   )
+}
+
+@OptIn(ExperimentalForeignApi::class)
+private fun configureAudioSession() {
+  try {
+    val session = AVAudioSession.sharedInstance()
+    session.setCategory(AVAudioSessionCategoryPlayback, error = null)
+    session.setActive(true, error = null)
+  } catch (_: Throwable) {
+    // Audio session configuration is best-effort
+  }
 }
 
 private fun String.isHttpUrl(): Boolean =
@@ -182,11 +198,13 @@ private class IosPlayerHolder(
   private val url: NSURL,
 ) {
   private var controller: AVPlayerViewController? = null
-  private var view: UIView? = null
 
-  val player: AVPlayer = AVPlayer(AVPlayerItem(uRL = url))
+  val player: AVPlayer = run {
+    configureAudioSession()
+    AVPlayer(AVPlayerItem(uRL = url))
+  }
 
-  private fun ensureController(): AVPlayerViewController {
+  fun ensureController(): AVPlayerViewController {
     val existing = controller
     if (existing != null) return existing
 
@@ -197,17 +215,11 @@ private class IosPlayerHolder(
       view.backgroundColor = UIColor.blackColor
     }.also { created ->
       controller = created
-      view = created.view
     }
   }
 
-  fun ensureView(): UIView = view ?: ensureController().view
-
-  fun setShowsPlaybackControls(show: Boolean) {
-    ensureController().showsPlaybackControls = show
-  }
-
   fun play() {
+    configureAudioSession()
     player.play()
   }
 
@@ -217,6 +229,7 @@ private class IosPlayerHolder(
 
   fun restartAndPlay() {
     // Recreate the item to restart playback. Avoids relying on seek APIs that may differ.
+    configureAudioSession()
     player.replaceCurrentItemWithPlayerItem(AVPlayerItem(uRL = url))
     player.play()
   }
@@ -225,7 +238,6 @@ private class IosPlayerHolder(
     player.pause()
     player.replaceCurrentItemWithPlayerItem(null)
     controller?.player = null
-    view = null
     controller = null
   }
 }

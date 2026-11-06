@@ -8,6 +8,7 @@ plugins {
   alias(libs.plugins.compose.compiler)
   alias(libs.plugins.compose)
   alias(libs.plugins.android.kotlin.multiplatform.library)
+  id("io.github.aryapreetam.parikshan") version "0.0.11"
 }
 
 kotlin {
@@ -16,7 +17,7 @@ kotlin {
   androidLibrary {
     namespace = "sample.app"
     compileSdk = 35
-    minSdk = 23
+    minSdk = 24
   }
   jvm()
   wasmJs {

@@ -52,8 +52,58 @@ import org.openani.mediamp.compose.MediampPlayerSurface
 import org.openani.mediamp.compose.rememberMediampPlayer
 import org.openani.mediamp.playUri
 import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
 
-internal actual fun isVideoSourceSupported(source: VideoSource): Boolean = true
+private object VlcNativeHelper {
+  private val initialized = AtomicBoolean(false)
+  private var isAvailable = false
+
+  fun ensureInitialized(): Boolean {
+    if (initialized.get()) return isAvailable
+    synchronized(this) {
+      if (initialized.get()) return isAvailable
+      isAvailable = tryInit()
+      initialized.set(true)
+      return isAvailable
+    }
+  }
+
+  private fun tryInit(): Boolean {
+    return try {
+      val os = System.getProperty("os.name", "").lowercase()
+      if (os.contains("mac")) {
+        val candidates = listOf(
+          File("/Applications/VLC.app/Contents/MacOS/lib"),
+          File(System.getProperty("user.home"), "Applications/VLC.app/Contents/MacOS/lib")
+        )
+        for (macVlcDir in candidates) {
+          val vlcCore = File(macVlcDir, "libvlccore.dylib")
+          val vlc = File(macVlcDir, "libvlc.dylib")
+          if (vlcCore.exists() && vlc.exists()) {
+            System.load(vlcCore.absolutePath)
+            System.load(vlc.absolutePath)
+            System.setProperty("jna.library.path", macVlcDir.absolutePath)
+            try {
+              uk.co.caprica.vlcj.binding.lib.LibC.INSTANCE.setenv(
+                "VLC_PLUGIN_PATH",
+                File(macVlcDir.parentFile, "plugins").absolutePath,
+                1
+              )
+            } catch (_: Throwable) {}
+            break
+          }
+        }
+      }
+      val discovery = uk.co.caprica.vlcj.factory.discovery.NativeDiscovery()
+      val discovered = discovery.discover()
+      discovered || System.getProperty("jna.library.path") != null
+    } catch (_: Throwable) {
+      false
+    }
+  }
+}
+
+internal actual fun isVideoSourceSupported(source: VideoSource): Boolean = VlcNativeHelper.ensureInitialized()
 
 private object ActiveMediampRegistry {
   private var activeKey: String? = null
@@ -97,6 +147,12 @@ internal actual fun PlatformVideoPlayer(
       is VideoSource.Path -> File(source.path).toURI().toString()
       is VideoSource.Url -> source.url
     }
+  }
+
+  val isNativeAvailable = remember { VlcNativeHelper.ensureInitialized() }
+  if (!isNativeAvailable) {
+    LaunchedEffect(Unit) { onError() }
+    return
   }
 
   val player = rememberMediampPlayer()

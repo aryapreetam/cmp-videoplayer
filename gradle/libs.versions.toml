@@ -8,6 +8,7 @@ compose-material3 = "1.10.0-alpha05"
 compose-material = "1.7.3"
 androidx-activityCompose = "1.10.1"
 dokka = "2.2.0"
+binary-compatibility-validator = "0.18.2"
 mediamp = "0.0.23"
 media3 = "1.5.1"
 lifecycle = "2.9.0"
@@ -42,4 +43,5 @@ compose = { id = "org.jetbrains.compose", version.ref = "compose" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binary-compatibility-validator" }
 

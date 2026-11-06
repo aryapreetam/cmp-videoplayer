@@ -32,7 +32,7 @@ public fun VideoPlayer(
     }
 
   Box(modifier = rootModifier) {
-    val shouldRenderPlaceholder = config.renderMode == RenderMode.PlaceholderOnly || !supported
+    val shouldRenderPlaceholder = config.renderMode == RenderMode.PlaceholderOnly || !supported || hasError
 
     if (shouldRenderPlaceholder) {
       if (placeholder != null) {

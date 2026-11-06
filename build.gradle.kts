@@ -6,10 +6,8 @@ plugins {
   alias(libs.plugins.compose.compiler).apply(false)
   alias(libs.plugins.android.application).apply(false)
   alias(libs.plugins.android.kotlin.multiplatform.library).apply(false)
+  alias(libs.plugins.binary.compatibility.validator).apply(false)
 }
-
-// Apply template setup check
-apply(from = "gradle/check-template-setup.gradle.kts")
 
 allprojects {
   group = findProperty("libGroup") ?: "io.github.aryapreetam"

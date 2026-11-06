@@ -1,10 +1,11 @@
-@file:OptIn(kotlin.js.ExperimentalWasmJsInterop::class)
+@file:OptIn(kotlin.js.ExperimentalWasmJsInterop::class, androidx.compose.ui.ExperimentalComposeUiApi::class)
 
 package io.github.aryapreetam.cmpvideoplayer
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -41,7 +42,6 @@ private object ActiveHtmlVideoRegistry {
   }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 internal actual fun PlatformVideoPlayer(
   source: VideoSource,
@@ -72,9 +72,21 @@ internal actual fun PlatformVideoPlayer(
     video.autoplay = config.autoplay
     video.loop = config.loop
 
+    val errorHandler: (Event) -> Unit = {
+      onErrorState.value.invoke()
+    }
+    video.addEventListener("error", errorHandler)
+
+    val playHandler: (Event) -> Unit = {
+      if (config.exclusivePlayback) {
+        ActiveHtmlVideoRegistry.setActive(video)
+      }
+    }
+    video.addEventListener("play", playHandler)
+
     try {
       if (config.autoplay) {
-        video.play()
+        safePlayVideo(video)
       } else {
         video.pause()
       }
@@ -82,15 +94,9 @@ internal actual fun PlatformVideoPlayer(
       // Best-effort.
     }
 
-    val playHandler: (Event) -> Unit = {
-      if (config.exclusivePlayback) {
-        ActiveHtmlVideoRegistry.setActive(video)
-      }
-    }
-
-    video.addEventListener("play", playHandler)
-
     onDispose {
+      video.removeEventListener("play", playHandler)
+      video.removeEventListener("error", errorHandler)
       try {
         video.pause()
         video.src = ""
@@ -100,15 +106,24 @@ internal actual fun PlatformVideoPlayer(
       if (config.exclusivePlayback) {
         ActiveHtmlVideoRegistry.clear(video)
       }
-      video.removeEventListener("play", playHandler)
     }
   }
 
-  WebElementView(
-    factory = { container },
-    modifier = modifier,
-    update = { /* No-op */ }
-  )
+  key(url) {
+    WebElementView(
+      factory = { container },
+      modifier = modifier,
+      onRelease = {
+        try {
+          val video = container.querySelector("video") as? HTMLVideoElement
+          video?.pause()
+          video?.src = ""
+        } catch (_: Throwable) {
+          // Best-effort.
+        }
+      }
+    )
+  }
 }
 
 private fun createVideoContainer(url: String): HTMLDivElement {
@@ -119,18 +134,41 @@ private fun createVideoContainer(url: String): HTMLDivElement {
   container.style.alignItems = "center"
   container.style.justifyContent = "center"
   container.style.background = "black"
+  container.style.setProperty("overflow", "hidden")
 
   val video = document.createElement("video") as HTMLVideoElement
   video.src = url
   video.controls = true
   video.autoplay = false
-  video.preload = "none"
+  video.setAttribute("preload", "auto")
+  video.setAttribute("crossorigin", "anonymous")
+  video.setAttribute("playsinline", "true")
+  video.style.width = "100%"
+  video.style.height = "100%"
   video.style.maxWidth = "100%"
   video.style.maxHeight = "100%"
   video.style.setProperty("object-fit", "contain")
   container.appendChild(video)
 
   return container
+}
+
+@OptIn(ExperimentalWasmJsInterop::class)
+private fun safePlayVideo(video: HTMLVideoElement) {
+  js("""
+    var playPromise = video.play();
+    if (playPromise !== undefined && typeof playPromise.catch === 'function') {
+      playPromise.catch(function(error) {
+        video.muted = true;
+        var retryPromise = video.play();
+        if (retryPromise !== undefined && typeof retryPromise.catch === 'function') {
+          retryPromise.catch(function(e) {
+            console.warn("Video playback could not be started automatically:", e);
+          });
+        }
+      });
+    }
+  """)
 }
 
 /**
